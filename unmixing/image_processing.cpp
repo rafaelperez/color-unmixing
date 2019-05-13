@@ -1,8 +1,12 @@
 #include "image_processing.h"
 #include <numeric>
 #include <cfloat>
+#include <iostream>
 #include <Eigen/LU>
-#include <QImage>
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
 
 namespace ImageProcessing
 {
@@ -43,13 +47,21 @@ void Image::scale_to_unit()
 
 void AbstractImage::save(const std::string &file_path) const
 {
-    QImage q_image(width(), height(), QImage::Format_ARGB32);
+    unsigned char *image_data = new unsigned char [width() * height() * 4];
+
     for (int x = 0; x < width(); ++ x) for (int y = 0; y < height(); ++ y)
     {
+        unsigned char *pixelOffset = image_data + (y * width() + x) * 4;
         const IntColor color = get_color(x, y);
-        q_image.setPixelColor(x, y, QColor(color(0), color(1), color(2), color(3)));
+        pixelOffset[0] = color(0);
+        pixelOffset[1] = color(1);
+        pixelOffset[2] = color(2);
+        pixelOffset[3] = color(3);
     }
-    q_image.save(QString::fromStdString(file_path));
+
+    stbi_write_png(file_path.c_str(), width(), height(), 4, image_data, width() * 4);
+
+    delete [] image_data;
 }
 
 AbstractImage::IntColor Image::get_color(int x, int y) const
@@ -67,21 +79,22 @@ AbstractImage::IntColor ColorImage::get_color(int x, int y) const
 
 ColorImage::ColorImage(const std::string &file_path)
 {
-    QImage q_image(QString::fromStdString(file_path));
-    width_  = q_image.width();
-    height_ = q_image.height();
+    int n;
+    unsigned char *image_data = stbi_load(file_path.c_str(), &width_, &height_, &n, 4);
 
     assert(width() > 0 && height() > 0);
 
     rgba_ = std::vector<Image>(4, Image(width(), height()));
     for (int x = 0; x < width(); ++ x) for (int y = 0; y < height(); ++ y)
     {
-        const QColor q_color = q_image.pixelColor(x, y);
-        rgba_[0].set_pixel(x, y, q_color.redF());
-        rgba_[1].set_pixel(x, y, q_color.greenF());
-        rgba_[2].set_pixel(x, y, q_color.blueF());
-        rgba_[3].set_pixel(x, y, q_color.alphaF());
+        unsigned char *pixelOffset = image_data + (y * width() + x) * 4;
+        rgba_[0].set_pixel(x, y, (double)pixelOffset[0] / 255.0);
+        rgba_[1].set_pixel(x, y, (double)pixelOffset[1] / 255.0);
+        rgba_[2].set_pixel(x, y, (double)pixelOffset[2] / 255.0);
+        rgba_[3].set_pixel(x, y, (double)pixelOffset[3] / 255.0);
     }
+
+    stbi_image_free(image_data);
 }
 
 Image ColorImage::get_luminance() const

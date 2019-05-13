@@ -2,6 +2,7 @@
 #include <cmath>
 #include <cfloat>
 #include <iostream>
+#include <ctime>
 #include <thread>
 #include <Eigen/LU>
 #include "nloptutility.h"
@@ -475,6 +476,8 @@ std::vector<ColorImage> convert_alpha_add_to_overlay(const std::vector<ColorImag
 
 void ColorUnmixing::compute_color_unmixing(const std::string &image_file_path, const std::string &output_directory_path)
 {
+    clock_t start_time = clock();
+
     // Import the target image
     const ColorImage original_image(image_file_path);
     const int width  = original_image.width();
@@ -691,4 +694,8 @@ void ColorUnmixing::compute_color_unmixing(const std::string &image_file_path, c
 
     // Print kernel info
     print_kernels(kernels);
+
+    clock_t finish_time = clock();
+    double duration = (double)(finish_time - start_time) / CLOCKS_PER_SEC;
+    std::cout << "\nTotal Time: " << duration << "s" << std::endl;
 }

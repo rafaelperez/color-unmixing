@@ -12,8 +12,8 @@ Please note that some steps of the original algorithm (e.g., acceleration of the
 ## Dependencies
 
 - [Eigen3](http://eigen.tuxfamily.org/)
-- [Qt5](http://doc.qt.io/qt-5/)
 - [NLopt](https://nlopt.readthedocs.io/)
+- [stb_image](https://github.com/nothings/stb)
 
 ## How to Compile and Run
 
