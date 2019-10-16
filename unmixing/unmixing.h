@@ -6,7 +6,12 @@
 namespace ColorUnmixing
 {
 
-void compute_color_unmixing(const std::string& image_file_path, const std::string& output_directory_path);
+void compute_color_unmixing(const std::string &image_file_path,
+							              const std::string &output_directory_path,
+                            const double tau,
+                            const int neighborhood_radius
+                            );
+
 
 }
 
