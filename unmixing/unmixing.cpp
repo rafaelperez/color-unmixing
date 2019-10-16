@@ -474,7 +474,11 @@ std::vector<ColorImage> convert_alpha_add_to_overlay(const std::vector<ColorImag
 
 }
 
-void ColorUnmixing::compute_color_unmixing(const std::string &image_file_path, const std::string &output_directory_path)
+void ColorUnmixing::compute_color_unmixing(const std::string &image_file_path,
+                                            const std::string &output_directory_path,
+                                            const double tau,
+                                            const int    neighborhood_radius
+                                            )
 {
     clock_t start_time = clock();
 
@@ -491,8 +495,8 @@ void ColorUnmixing::compute_color_unmixing(const std::string &image_file_path, c
     std::vector<ColorKernel> kernels;
     std::vector<std::vector<bool>> well_represented(width, std::vector<bool>(height, false));
 
-    constexpr double tau                 = 5.0; // The value used in the original paper is 5.
-    constexpr int    neighborhood_radius = 10;  // In the paper, this value is fixed to 10 (i.e., 20 x 20 neighborhood) for any input image. This may need to be modified so that it adapts to the image size.
+    //constexpr double tau                 = 5.0; // The value used in the original paper is 5.
+    //constexpr int    neighborhood_radius = 10;  // In the paper, this value is fixed to 10 (i.e., 20 x 20 neighborhood) for any input image. This may need to be modified so that it adapts to the image size.
     constexpr int    number_of_bins      = 10;
     
     while (true)
@@ -549,7 +553,7 @@ void ColorUnmixing::compute_color_unmixing(const std::string &image_file_path, c
 #else
         for (int x = 0; x < width; ++ x) for (int y = 0; y < height; ++ y) per_pixel_polling_process(x, y);
 #endif
-        
+        /*
         // Export the current mask
         Image well_represented_map(width, height, 0.0);
         for (int x = 0; x < width; ++ x) for (int y = 0; y < height; ++ y)
@@ -557,6 +561,7 @@ void ColorUnmixing::compute_color_unmixing(const std::string &image_file_path, c
             well_represented_map.set_pixel(x, y, (well_represented[x][y] ? 1.0 : 0.0));
         }
         well_represented_map.save(output_directory_path + "/rep" + std::to_string(kernels.size()) + ".png");
+        */
 
         // Break the loop if *almost* all the pixels are already well represented
         int count = 0;
@@ -674,23 +679,23 @@ void ColorUnmixing::compute_color_unmixing(const std::string &image_file_path, c
     for (int x = 0; x < width; ++ x) for (int y = 0; y < height; ++ y) per_pixel_process(x, y);
 #endif
 
-    const std::vector<ColorImage> overlay_layers = convert_alpha_add_to_overlay(layers);
+    //const std::vector<ColorImage> overlay_layers = convert_alpha_add_to_overlay(layers);
     const std::vector<ColorImage> refined_layers = perform_matte_refinement(original_image, layers, kernels);
-    const std::vector<ColorImage> refined_overlay_layers = convert_alpha_add_to_overlay(refined_layers);
+    //const std::vector<ColorImage> refined_overlay_layers = convert_alpha_add_to_overlay(refined_layers);
 
     // Export layers
     for (int index = 0; index < number_of_layers; ++ index)
     {
-        layers[index].save(output_directory_path + "/layer" + std::to_string(index) + ".png");
-        layers[index].get_a().save(output_directory_path + "/layer_alpha" + std::to_string(index) + ".png");
-        overlay_layers[index].save(output_directory_path + "/overlay_layer" + std::to_string(index) + ".png");
+        //layers[index].save(output_directory_path + "/layer" + std::to_string(index) + ".png");
+        //layers[index].get_a().save(output_directory_path + "/layer_alpha" + std::to_string(index) + ".png");
+        //overlay_layers[index].save(output_directory_path + "/overlay_layer" + std::to_string(index) + ".png");
         refined_layers[index].save(output_directory_path + "/refined_layer" + std::to_string(index) + ".png");
-        refined_layers[index].get_a().save(output_directory_path + "/refined_layer_alpha" + std::to_string(index) + ".png");
-        refined_overlay_layers[index].save(output_directory_path + "/refined_overlay_layer" + std::to_string(index) + ".png");
+        //refined_layers[index].get_a().save(output_directory_path + "/refined_layer_alpha" + std::to_string(index) + ".png");
+        //refined_overlay_layers[index].save(output_directory_path + "/refined_overlay_layer" + std::to_string(index) + ".png");
     }
 
     // Export the original image
-    original_image.save(output_directory_path + "/original.png");
+    //original_image.save(output_directory_path + "/original.png");
 
     // Print kernel info
     print_kernels(kernels);
